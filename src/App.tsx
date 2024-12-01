@@ -6,13 +6,16 @@ import { Button, Flex, Input, View } from "@aws-amplify/ui-react";
 const client = generateClient<Schema>();
 
 type User = Schema["User"]["type"];
+type Room = Schema["Room"]["type"];
 
 const Header = ({
   user,
-  setUser
+  setUser,
+  room,
 }: {
   user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  room: Room | null;
 }) => {
   const [enteredUserName, setEnteredUserName] = useState<string>("");
 
@@ -50,46 +53,65 @@ const Header = ({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEnteredUserName(e.target.value)} />
         <Button onClick={updateUserName}>ユーザー名のセット</Button>
       </Flex>
+      <p>{`Room name: ${room?.name}`}</p>
+    </View>
+  );
+};
+
+const Rooms = ({ setRoom }: { setRoom: React.Dispatch<React.SetStateAction<Room | null>> }) => {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [enteredRoomName, setEnteredRoomName] = useState<string>("");
+
+  useEffect(() => {
+    client.models.Room.observeQuery().subscribe({
+      next: ({ items: rooms }) => {
+        setRooms(rooms);
+      },
+    });
+  }, []);
+
+  const handleClick = async () => {
+    if (enteredRoomName === "") {
+      alert("部屋名を入力してください");
+      return;
+    }
+
+    await client.models.Room.create({ name: enteredRoomName });
+    return;
+  }
+
+  return (
+    <View>
+      <h2>Rooms</h2>
+      <ul>
+        {rooms.map((room) => (
+          <li key={room.id}>
+            <Button onClick={() => setRoom(room)}>{`Enter room "${room.name}"`}</Button>
+          </li>
+        ))}
+      </ul>
+      <Input onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEnteredRoomName(e.target.value)} />
+      <Button onClick={handleClick}>部屋を作成</Button>
     </View>
   );
 };
 
 function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [room, setRoom] = useState<Room | null>(null);
 
   useEffect(() => {
     const createUser = async () => {
-      client.models.Todo.observeQuery().subscribe({
-        next: (data) => setTodos([...data.items]),
-      });
       const createdUserResponse = await client.models.User.create({ name: null });
       setUser(createdUserResponse.data);
     }
     createUser();
   }, []);
 
-  function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
-  }
-
   return (
     <main>
-      <Header user={user} setUser={setUser} />
-      <h1>My todos</h1>
-      <button onClick={createTodo}>+ new</button>
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.content}</li>
-        ))}
-      </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-          Review next step of this tutorial.
-        </a>
-      </div>
+      <Header user={user} setUser={setUser} room={room} />
+      {room === null && <Rooms setRoom={setRoom} />}
     </main>
   );
 }
