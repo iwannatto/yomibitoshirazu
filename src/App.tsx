@@ -53,12 +53,12 @@ const Header = ({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEnteredUserName(e.target.value)} />
         <Button onClick={updateUserName}>ユーザー名のセット</Button>
       </Flex>
-      <p>{`Room name: ${room?.name}`}</p>
+      <p style={{ margin: 0 }}>{`Room name: ${room?.name}`}</p>
     </View>
   );
 };
 
-const Rooms = ({ setRoom }: { setRoom: React.Dispatch<React.SetStateAction<Room | null>> }) => {
+const Rooms = ({ user, setRoom }: { user: User; setRoom: React.Dispatch<React.SetStateAction<Room | null>> }) => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [enteredRoomName, setEnteredRoomName] = useState<string>("");
 
@@ -70,7 +70,15 @@ const Rooms = ({ setRoom }: { setRoom: React.Dispatch<React.SetStateAction<Room 
     });
   }, []);
 
-  const handleClick = async () => {
+  const enterRoom = async (room: Room) => {
+    await client.models.User.update({
+      id: user.id,
+      roomId: room.id,
+    });
+    setRoom(room);
+  };
+
+  const createRoom = async () => {
     if (enteredRoomName === "") {
       alert("部屋名を入力してください");
       return;
@@ -86,12 +94,12 @@ const Rooms = ({ setRoom }: { setRoom: React.Dispatch<React.SetStateAction<Room 
       <ul>
         {rooms.map((room) => (
           <li key={room.id}>
-            <Button onClick={() => setRoom(room)}>{`Enter room "${room.name}"`}</Button>
+            <Button onClick={() => enterRoom(room)}>{`Enter room "${room.name}"`}</Button>
           </li>
         ))}
       </ul>
       <Input onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEnteredRoomName(e.target.value)} />
-      <Button onClick={handleClick}>部屋を作成</Button>
+      <Button onClick={createRoom}>部屋を作成</Button>
     </View>
   );
 };
@@ -111,7 +119,7 @@ function App() {
   return (
     <main>
       <Header user={user} setUser={setUser} room={room} />
-      {room === null && <Rooms setRoom={setRoom} />}
+      {user !== null && room === null && <Rooms user={user} setRoom={setRoom} />}
     </main>
   );
 }
