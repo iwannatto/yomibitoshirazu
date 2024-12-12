@@ -120,7 +120,7 @@ const Game = ({ user, room }: { user: User; room: Room }) => {
     return () => {
       sub.unsubscribe();
     };
-  }, [room.id]);
+  });
 
   const removeUser = async (user: User) => {
     await client.models.User.update({
