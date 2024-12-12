@@ -20,8 +20,8 @@ const Header = ({
   const [enteredUserName, setEnteredUserName] = useState<string>("");
 
   const updateUserName = async () => {
-    if (user === null) {
-      console.error("user === null");
+    if (user == null) {
+      console.error("user == null");
       return;
     }
     const { data: updatedUser } = await client.models.User.update({
@@ -63,11 +63,14 @@ const Rooms = ({ user, setRoom }: { user: User; setRoom: React.Dispatch<React.Se
   const [enteredRoomName, setEnteredRoomName] = useState<string>("");
 
   useEffect(() => {
-    client.models.Room.observeQuery().subscribe({
+    const sub = client.models.Room.observeQuery().subscribe({
       next: ({ items: rooms }) => {
         setRooms(rooms);
       },
     });
+    return () => {
+      sub.unsubscribe();
+    };
   }, []);
 
   const enterRoom = async (room: Room) => {
@@ -104,6 +107,37 @@ const Rooms = ({ user, setRoom }: { user: User; setRoom: React.Dispatch<React.Se
   );
 };
 
+const Game = ({ user, room }: { user: User; room: Room }) => {
+  const [usersInRoom, setUsersInRoom] = useState<User[]>([]);
+
+  useEffect(() => {
+    const sub = client.models.User.observeQuery().subscribe({
+      next: ({ items: users }) => {
+        users = users.filter((user) => user.roomId === room.id);
+        setUsersInRoom(users);
+      },
+    });
+    return () => {
+      sub.unsubscribe();
+    };
+  }, [room.id]);
+
+  const removeUser = async (user: User) => {
+    await client.models.User.update({
+      id: user.id,
+      roomId: null,
+    });
+  };
+
+  return (
+    <ul>
+      {usersInRoom.map((user) => (
+        <li key={user.id} onClick={() => removeUser(user)}>{user.name} クリックでユーザー削除</li>
+      ))}
+    </ul>
+  );
+}
+
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
@@ -120,6 +154,7 @@ function App() {
     <main>
       <Header user={user} setUser={setUser} room={room} />
       {user !== null && room === null && <Rooms user={user} setRoom={setRoom} />}
+      {user !== null && room !== null && <Game user={user} room={room} />}
     </main>
   );
 }
