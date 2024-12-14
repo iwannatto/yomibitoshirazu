@@ -190,11 +190,23 @@ const CurrentSenryu = ({ user, room }: { user: User; room: Room }) => {
 
   const copiedCharacters = [...characters];
   copiedCharacters.sort((a, b) => a.index - b.index);
-  const displayedSenryu = copiedCharacters
-    .map((character) => character.character)
-    .join("");
+  const row1 = copiedCharacters.slice(0, 5);
+  const row2 = copiedCharacters.slice(5, 12);
+  const row3 = copiedCharacters.slice(12, 17);
+  const rowTodisplayRow = (row: Character[]) => {
+    return row.map((character) => character.character).join("");
+  };
+  const displayRow1 = rowTodisplayRow(row1);
+  const displayRow2 = rowTodisplayRow(row2);
+  const displayRow3 = rowTodisplayRow(row3);
 
-  return <p>{displayedSenryu}</p>;
+  return (
+    <>
+      <p style={{ margin: 0 }}>{displayRow1}</p>
+      <p style={{ margin: 0 }}>{displayRow2}</p>
+      <p style={{ margin: 0 }}>{displayRow3}</p>
+    </>
+  );
 };
 
 const EnterNewCharacter = ({
