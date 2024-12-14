@@ -12,11 +12,35 @@ const schema = a.schema({
       name: a.string(),
       roomId: a.id(),
       room: a.belongsTo("Room", "roomId"),
+      currentSenryu: a.hasOne("Senryu", "currentUserId"),
+      characters: a.hasMany("Character", "userId"),
     }),
   Room: a
     .model({
       name: a.string().required(),
       users: a.hasMany("User", "roomId"),
+      locked: a.boolean().required(),
+      currentIndex: a.integer().required(),
+      order: a.id().array().required(),
+      completedUserIds: a.id().array().required(),
+      senryus: a.hasMany("Senryu", "roomId"),
+    }),
+  Senryu: a.
+    model({
+      roomId: a.id().required(),
+      room: a.belongsTo("Room", "roomId"),
+      characters: a.hasMany("Character", "senryuId"),
+      currentUserId: a.id().required(),
+      currentUser: a.belongsTo("User", "currentUserId"),
+    }),
+  Character: a.
+    model({
+      senryuId: a.id().required(),
+      senryu: a.belongsTo("Senryu", "senryuId"),
+      index: a.integer().required(),
+      character: a.string().required(),
+      userId: a.id().required(),
+      user: a.belongsTo("User", "userId"),
     }),
 }).authorization((allow) => [allow.publicApiKey()]);
 
