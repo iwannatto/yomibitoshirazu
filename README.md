@@ -1,3 +1,10 @@
+# ライセンスについて
+
+Starter Template自体はMITライセンスですが、私による改変部分は一切再利用を許可しておりません。  
+詳細は [MODIFICATIONS_LICENSE](MODIFICATIONS_LICENSE) をご参照ください。
+
+---
+
 ## AWS Amplify React+Vite Starter Template
 
 This repository provides a starter template for creating applications using React+Vite and AWS Amplify, emphasizing easy setup for authentication, API, and database capabilities.
